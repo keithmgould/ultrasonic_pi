@@ -1,32 +1,40 @@
 require 'wiringpi'
 
-TRIG = 23
-ECHO = 24
-pulse_sart = pulse_end = 0
+unless ARGV.size == 2
+  puts "Please enter trigger and echo pins."
+  puts "ex: ruby distance.rb 2 3"
+  exit
+end
+
+
+trigger = ARGV[0]
+echo = ARGV[1]
+
+pulse_start = pulse_end = 0
 
 io = WiringPi::GPIO.new(WPI_MODE_GPIO)
 
-io.mode(TRIG,OUTPUT)
-io.mode(ECHO,INPUT)
+io.mode(trigger,OUTPUT)
+io.mode(echo,INPUT)
 
 
 puts "Distance Measurement In Progress"
 
 # give sensor a chance to chill out
-io.write(TRIG,0)
+io.write(trigger,0)
 sleep(2)
 
-# arm sensor by turning TRIG on for 10 micro seconds
-io.write(TRIG,1)
+# arm sensor by turning trigger on for 10 micro seconds
+io.write(trigger,1)
 sleep(0.00001)
-io.write(TRIG,0)
+io.write(trigger,0)
 
 
-while io.read(ECHO) == 0 do
+while io.read(echo) == 0 do
  pulse_start = Time.now
 end
 
-while io.read(ECHO) == 1 do
+while io.read(echo) == 1 do
  pulse_end = Time.now
 end
 
