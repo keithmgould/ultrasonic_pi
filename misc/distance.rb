@@ -1,5 +1,8 @@
 require 'wiringpi'
 
+# Bring in our initializsers
+Dir.glob(File.join(File.dirname(__FILE__), '/../initializers/*.rb')).each {|f| require f }
+
 unless ARGV.size == 2
   puts "Please enter trigger and echo pins."
   puts "ex: ruby distance.rb 2 3"
