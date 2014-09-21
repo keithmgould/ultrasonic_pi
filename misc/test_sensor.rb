@@ -1,6 +1,6 @@
 require 'wiringpi'
 
-require "#{File.dirname(__FILE__)}/sensor.rb"
+require "#{File.dirname(__FILE__)}/../models/sensor.rb"
 
 unless ARGV.size == 4
   puts "Please enter trigger and echo pins for sensor 1 and 2."
@@ -28,10 +28,10 @@ sleep(2)
 puts "here we go..."
 loop do
   distance = sensor.distance
-  puts "distance: #{distance}"
+  puts "distance: #{distance}" if distance < 40
   sleep(0.05)
   distance2 = sensor2.distance
-  puts "distance2: #{distance2}"
+  puts "distance2: #{distance2}" if distance2 < 40
   sleep(0.05)
 end
 
