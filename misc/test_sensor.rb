@@ -2,17 +2,24 @@ require 'wiringpi'
 
 require "#{File.dirname(__FILE__)}/sensor.rb"
 
-ECHO = 24
-TRIG = 23
+unless ARGV.size == 4
+  puts "Please enter trigger and echo pins for sensor 1 and 2."
+  puts "(s1 t) (s1 e) (s2 t) (s2 e)"
+  puts "ex: ruby distance.rb 2 3 4 5"
+  exit
+end
 
-ECHO2 = 25
-TRIG2 = 22
 
+trigger1 = ARGV[0].to_i
+echo1 = ARGV[1].to_i
+
+trigger2 = ARGV[2].to_i
+echo2 = ARGV[3].to_i
 
 wiring_io = WiringPi::GPIO.new(WPI_MODE_GPIO)
 
-sensor = Sensor.new(TRIG, ECHO, wiring_io)
-sensor2 = Sensor.new(TRIG2, ECHO2, wiring_io)
+sensor = Sensor.new(trigger1, echo1, wiring_io)
+sensor2 = Sensor.new(trigger2, echo2, wiring_io)
 
 puts "resetting sensors"
 sensor.reset
