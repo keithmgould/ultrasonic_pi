@@ -15,7 +15,7 @@ wiring_io = WiringPi::GPIO.new(WPI_MODE_GPIO)
 end
 
 PINS[:beam_sensors].each_with_index do |sensor, index|
-  @sensors << Sensor.new(sensor[:trigger], sensor[:echo], wiring_io, "beam_#{index}")
+  @sensors << Sensor.new(sensor[:trigger], sensor[:echo], wiring_io, "beam_#{index + 1}")
 end
 
 puts "resetting sensors"
