@@ -33,7 +33,7 @@ class Sensor
       break if distance > 60
     end
 
-    distance
+    distance.to_i
   end
 
   def convert_to_cm(duration)
