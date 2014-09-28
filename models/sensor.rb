@@ -1,9 +1,11 @@
 class Sensor
-  def initialize(trig_pin, echo_pin, wiring_io)
+  attr_reader :name
+
+  def initialize(trig_pin, echo_pin, wiring_io, name = 'none')
     @trig_pin  = trig_pin
     @echo_pin  = echo_pin
     @wiring_io = wiring_io
-
+    @name      = name
     @wiring_io.mode(@trig_pin, OUTPUT)
     @wiring_io.mode(@echo_pin, INPUT)
   end

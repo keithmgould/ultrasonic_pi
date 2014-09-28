@@ -1,8 +1,4 @@
 class Station
-  state_machine :state, :initial => :preboot do
-    before_transition :parked => any - :parked, :do => :put_on_seatbelt
-    event(:reboot) { transition all => :booting }
-  end
 
   def initialize(pins)
     @pins = pins
@@ -13,10 +9,34 @@ class Station
   end
 
   def begin
-
+    loop do
+      check_beam_broken
+      check_box_leaving
+      check_box_entering
+      update_status
+    end
   end
 
   private
+  
+  def check_beam_broken
+    @beam_broken = beam_broken?
+    rest
+  end
+
+  def beam_broken?
+    @beam_sensors.each do |sensor|
+
+    end 
+  end
+
+  def box_entering?
+
+  end
+
+  def box_leaving?
+
+  end
   
   def initialize_gpio
     @wiring_io = WiringPi::GPIO.new(WPI_MODE_GPIO)
