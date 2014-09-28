@@ -25,12 +25,9 @@ puts "here we go..."
 
 loop do
   @sensors.each do |sensor|
-    puts "trying sensor #{sensor.name}"
-    50.times do
-      distance = sensor.distance
-      puts "distance: #{distance}" if distance < 40
-      sleep(0.05)
-    end
+    distance = sensor.distance
+    puts "distance: #{distance} for sensor #{sensor.name}" if distance < 40
+    sleep(0.025)
   end
 end
 
