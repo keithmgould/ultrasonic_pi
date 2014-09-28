@@ -1,15 +1,20 @@
 require 'wiringpi'
 
-GPIOPIN = 22
+unless ARGV.size == 1
+  puts "please enter the GPIO Pin to use when running this script"
+  puts "ex: ruby led.rb 23"
+  exit
+end
+
+pin = ARGV[0].to_i
 
 io = WiringPi::GPIO.new(WPI_MODE_GPIO)
-io.mode(GPIOPIN, OUTPUT)
-io.write(GPIOPIN, 1)
+io.mode(pin, OUTPUT)
 
 loop do
  sleep(0.5)
- io.write(GPIOPIN, 0)
+ io.write(pin, 0)
  sleep(0.5)
- io.write(GPIOPIN, 1)
+ io.write(pin, 1)
 end
 
