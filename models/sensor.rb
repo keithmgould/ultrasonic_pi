@@ -1,6 +1,8 @@
 class Sensor
   attr_reader :name
 
+  MAX_DISTANCE = 60
+
   def initialize(trig_pin, echo_pin, wiring_io, name = 'none')
     @trig_pin  = trig_pin
     @echo_pin  = echo_pin
@@ -30,7 +32,7 @@ class Sensor
     while @wiring_io.read(@echo_pin) == 1 do
       pulse_end = Time.now
       distance = convert_to_cm(pulse_end - pulse_start)
-      break if distance > 60
+      break if distance >= MAX_DISTANCE
     end
 
     distance.to_i
