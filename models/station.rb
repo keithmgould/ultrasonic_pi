@@ -5,11 +5,13 @@ class Station
 
   REST_TIME = 0.025 # seconds inbetween each sensor
 
+  SENSOR_MAX_AVG = 3
+
   # Bit positions for determining state.  See Valid Transisions below for more details
   ENTRY_SENSOR  = 0
   INSIDE_SENSOR = 1
   EXIT_SENSOR   = 2
-  BEAM          = 3 
+  BEAM          = 3
 
   # Each state is determined by looking at the integer representation of the 4 bits shown above.
   # So if the entry sensor is on, and the beam has been broken, that would be 1001 or '9'
@@ -77,6 +79,7 @@ class Station
     puts "beginning!"
     loop do
       check_beam unless @beam_broken
+      check_box
       transition
     end
   end
@@ -105,18 +108,32 @@ class Station
   end
 
   def entry_on?
-    sleep(REST_TIME)
-    @entry_sensor.distance <= BOX_DISTANCE ? 1 : 0
+    @entry_sensor_avg >= SENSOR_MAX_AVG ? 1 : 0
   end
 
   def inside_on?
-    sleep(REST_TIME)
-    @inside_sensor.distance <= BOX_DISTANCE ? 1 : 0
+    @inside_sensor_avg >= SENSOR_MAX_AVG ? 1 : 0
   end
 
   def exit_on?
+    @exit_sensor_avg >= SENSOR_MAX_AVG ? 1 : 0
+  end
+
+  def check_box
+    @entry_sensor_avg += @entry_sensor.distance <= BOX_DISTANCE ? 1 : -1
+    @entry_sensor_avg = 0 if @entry_sensor_avg < 0
+    @entry_sensor_avg = 0 if @entry_sensor_avg < 0
     sleep(REST_TIME)
-    @exit_sensor.distance <= BOX_DISTANCE ? 1 : 0
+
+    @inside_sensor_avg += @inside_sensor.distance <= BOX_DISTANCE ? 1 : -1
+    @inside_sensor_avg = 0 if @inside_sensor_avg < 0
+    @inside_sensor_avg = 0 if @inside_sensor_avg < 0
+    sleep(REST_TIME)
+
+    @exit_sensor_avg += @exit_sensor.distance <= BOX_DISTANCE ? 1 : -1
+    @exit_sensor_avg = 0 if @exit_sensor_avg < 0
+    @exit_sensor_avg = 0 if @exit_sensor_avg < 0
+    sleep(REST_TIME)
   end
 
   def check_beam
@@ -148,6 +165,9 @@ class Station
   def initialize_sensors
     puts "initializing sensors..."
     @all_sensors = []
+    @entry_sensor_avg = 0
+    @inside_sensor_avg = 0
+    @exit_sensor_avg = 0
     initialize_entry_sensor
     initialize_inside_sensor
     initialize_exit_sensor
