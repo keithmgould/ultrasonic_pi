@@ -129,7 +129,6 @@ class Station
       end 
     end
     @beam_broken = points > 4 ? 1 : 0
-    puts "beam broken: #{@beam_broken}"
   end
 
   #-----------------------------------------------------
