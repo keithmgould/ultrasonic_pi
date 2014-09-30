@@ -11,6 +11,7 @@ class Station
   def initialize(pins)
     @pins = pins
     @beam_broken = 0
+    @state = 0
     initialize_gpio
     initialize_sensors
     reset_sensors
