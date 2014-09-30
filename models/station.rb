@@ -43,7 +43,9 @@ class Station
   end
 
   def begin
+    puts "beginning!"
     loop do
+      puts "."
       check_beam unless @beam_broken
       transition
     end
@@ -53,6 +55,7 @@ class Station
 
   def transition
     new_state = sensor_state
+    puts "state: #{new_state}"
     return if new_state == @state
 
     puts "Transitioning from #{@state} to #{new_state}"
@@ -99,6 +102,7 @@ class Station
       end 
     end
     @beam_broken = points > 4
+    puts "beam broken: #{@beam_broken}"
   end
 
   #-----------------------------------------------------
