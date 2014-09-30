@@ -45,7 +45,6 @@ class Station
   def begin
     puts "beginning!"
     loop do
-      puts "."
       check_beam unless @beam_broken
       transition
     end
@@ -54,12 +53,9 @@ class Station
   private
 
   def transition
-    new_state = sensor_state
-    puts "state: #{new_state}"
+    new_state = fetch_sensor_state
     return if new_state == @state
-
     puts "Transitioning from #{@state} to #{new_state}"
-
     if valid_transition?(new_state)
       # do nothing :) 
     else
@@ -73,23 +69,23 @@ class Station
     VALID_TRANSITIONS[@state][:valid].include?(new_state)
   end
 
-  def sensor_state
+  def fetch_sensor_state
     "#{entry_on?}#{inside_on?}#{exit_on?}#{@beam_broken}".to_i(2)
   end
 
   def entry_on?
     sleep(REST_TIME)
-    @entry_sensor.distance <= BOX_DISTANCE
+    @entry_sensor.distance <= BOX_DISTANCE ? 1 : 0
   end
 
   def inside_on?
     sleep(REST_TIME)
-    @inside_sensor.distance <= BOX_DISTANCE
+    @inside_sensor.distance <= BOX_DISTANCE ? 1 : 0
   end
 
   def exit_on?
     sleep(REST_TIME)
-    @exit_sensor.distance <= BOX_DISTANCE
+    @exit_sensor.distance <= BOX_DISTANCE ? 1 : 0
   end
 
   def check_beam
@@ -101,7 +97,7 @@ class Station
         sleep(REST_TIME)
       end 
     end
-    @beam_broken = points > 4
+    @beam_broken = points > 4 ? 1 : 0
     puts "beam broken: #{@beam_broken}"
   end
 
