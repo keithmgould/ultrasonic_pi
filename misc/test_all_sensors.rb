@@ -10,7 +10,7 @@ wiring_io = WiringPi::GPIO.new(WPI_MODE_GPIO)
 
 @sensors = []
 
-[:entry_sensor, :exit_sensor, :inner_sensor].each do |sensor|
+[:entry_sensor, :exit_sensor, :inside_sensor].each do |sensor|
   @sensors << Sensor.new(PINS[sensor][:trigger], PINS[sensor][:echo], wiring_io, sensor.to_s)
 end
 

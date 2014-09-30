@@ -10,7 +10,7 @@ Dir.glob(File.join(File.dirname(__FILE__), '/models/*.rb')).each {|f| require f 
 require "#{File.dirname(__FILE__)}/pinout.rb"
 
 # Initialize our Station
-station = Station.new(pins)
+station = Station.new(PINS)
 
 #start the station
 station.begin
