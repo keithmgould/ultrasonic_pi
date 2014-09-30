@@ -10,8 +10,7 @@ class Station
 
   def initialize(pins)
     @pins = pins
-    @beam_broken = false
-    initialize_state
+    @beam_broken = 0
     initialize_gpio
     initialize_sensors
     reset_sensors
@@ -72,25 +71,16 @@ class Station
   end
 
   def check_beam_sensors
-    return if @beam_broken
-    points = 0
+    return if @beam_broken == 1
     @beam_sensors.each do |sensor|
       distance = sensor.distance
-      points += 1 if distance < 40
+      @beam_broken = 1 if distance < 40
       sleep(REST_TIME)
     end 
-    @beam_broken = points > 4 ? 1 : 0
   end
 
   #-----------------------------------------------------
   # Methods Below Concern Initialization
-
-  def initialize_state
-    @beam_broken = false
-    @state = 0
-    # TODO turn error lights off
-    # TODO turn status light to blinking on
-  end
   
   def initialize_gpio
     @wiring_io = WiringPi::GPIO.new(WPI_MODE_GPIO)
