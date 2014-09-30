@@ -5,69 +5,12 @@ class Station
 
   REST_TIME = 0.025 # seconds inbetween each sensor
 
-  SENSOR_MAX_AVG = 3
-
-  # Bit positions for determining state.  See Valid Transisions below for more details
-  ENTRY_SENSOR  = 0
-  INSIDE_SENSOR = 1
-  EXIT_SENSOR   = 2
-  BEAM          = 3
-
-  # Each state is determined by looking at the integer representation of the 4 bits shown above.
-  # So if the entry sensor is on, and the beam has been broken, that would be 1001 or '9'
-  VALID_TRANSITIONS = [
-    # 0 => entry off, inside off, exit off, beam off
-    { valid: [8], invalid_entry: [], invalid_exit: [2,3,6,7], missed_ingredient: [] },
-
-    # 1 => entry off, inside off, exit off, beam on
-    { valid: [], invalid_entry: [], invalid_exit: [], missed_ingredient: [] },
-
-    # 2 => entry off, inside off, exit on, beam off
-    { valid: [6,3], invalid_entry: [8,9,12,13], invalid_exit: [], missed_ingredient: [0] },
-
-    # 3 => entry off, inside off, exit on, beam on
-    { valid: [7,0], invalid_entry: [8,9,12,13], invalid_exit: [], missed_ingredient: [] },
-
-    # 4 => entry off, inside on, exit off, beam off
-    { valid: [12,6,5], invalid_entry: [], invalid_exit: [], missed_ingredient: [] },
-
-    # 5 => entry off, inside on, exit off, beam on
-    { valid: [13,7], invalid_entry: [], invalid_exit: [], missed_ingredient: [] },
-
-    # 6 => entry off, inside on, exit on, beam off
-    { valid: [4,2,7], invalid_entry: [8,9,12,13], invalid_exit: [], missed_ingredient: [] },
-
-    # 7 => entry off, inside on, exit on, beam on
-    { valid: [5,3], invalid_entry: [8,9,12,13], invalid_exit: [], missed_ingredient: [] },
-
-    # 8 => entry on, inside off, exit off, beam off
-    { valid: [0,12,9], invalid_entry: [], invalid_exit: [2,3,6,7], missed_ingredient: [] },
-
-    # 9 => entry on, inside off, exit off, beam on
-    { valid: [13], invalid_entry: [], invalid_exit: [], missed_ingredient: [] },
-
-    # 10 => entry on, inside off, exit on, beam off
-    { valid: [], invalid_entry: [], invalid_exit: [], missed_ingredient: [] },
-
-    # 11 => entry on, inside off, exit on, beam on
-    { valid: [], invalid_entry: [], invalid_exit: [], missed_ingredient: [] },
-
-    # 12 => entry on, inside on, exit off, beam off
-    { valid: [8,4], invalid_entry: [], invalid_exit: [2,3,6,7], missed_ingredient: [] },
-
-    # 13 => entry on, inside on, exit off, beam on
-    { valid: [9,5], invalid_entry: [], invalid_exit: [], missed_ingredient: [] },
-
-    # 14 => entry on, inside on, exit on, beam off
-    { valid: [], invalid_entry: [], invalid_exit: [], missed_ingredient: [] },
-
-    # 15 => entry on, inside on, exit on, beam on
-    { valid: [], invalid_entry: [], invalid_exit: [], missed_ingredient: [] }
-  ]
-
+  # how far back to go when looking at rolling avg
+  SENSOR_HISTORY_LENGTH = 3
 
   def initialize(pins)
     @pins = pins
+    @beam_broken = false
     initialize_state
     initialize_gpio
     initialize_sensors
@@ -78,8 +21,8 @@ class Station
   def begin
     puts "beginning!"
     loop do
-      check_beam unless @beam_broken
-      check_box
+      check_beam_sensors
+      check_box_sensors
       transition
     end
   end
@@ -104,47 +47,38 @@ class Station
   end
 
   def fetch_sensor_state
-    "#{entry_on?}#{inside_on?}#{exit_on?}#{@beam_broken}".to_i(2)
+    "#{entry_on}#{inside_on}#{exit_on}#{@beam_broken}".to_i(2)
   end
 
-  def entry_on?
-    @entry_sensor_avg >= SENSOR_MAX_AVG ? 1 : 0
+  def entry_on
+    @box_sensor_history[:entry_sensor].mean >= 0.5 ? 1 : 0
   end
 
-  def inside_on?
-    @inside_sensor_avg >= SENSOR_MAX_AVG ? 1 : 0
+  def inside_on
+    @box_sensor_history[:inside_sensor].mean >= 0.5 ? 1 : 0
   end
 
-  def exit_on?
-    @exit_sensor_avg >= SENSOR_MAX_AVG ? 1 : 0
+  def exit_on
+    @box_sensor_history[:exit_sensor].mean >= 0.5 ? 1 : 0
   end
 
-  def check_box
-    @entry_sensor_avg += @entry_sensor.distance <= BOX_DISTANCE ? 1 : -1
-    @entry_sensor_avg = 0 if @entry_sensor_avg < 0
-    @entry_sensor_avg = 0 if @entry_sensor_avg < 0
-    sleep(REST_TIME)
-
-    @inside_sensor_avg += @inside_sensor.distance <= BOX_DISTANCE ? 1 : -1
-    @inside_sensor_avg = 0 if @inside_sensor_avg < 0
-    @inside_sensor_avg = 0 if @inside_sensor_avg < 0
-    sleep(REST_TIME)
-
-    @exit_sensor_avg += @exit_sensor.distance <= BOX_DISTANCE ? 1 : -1
-    @exit_sensor_avg = 0 if @exit_sensor_avg < 0
-    @exit_sensor_avg = 0 if @exit_sensor_avg < 0
-    sleep(REST_TIME)
-  end
-
-  def check_beam
-    points = 0
-    2.times do
-      @beam_sensors.each do |sensor|
-        distance = sensor.distance
-        points += 1 if distance < 40
-        sleep(REST_TIME)
-      end 
+  def check_box_sensors
+    [:entry_sensor, :inside_sensor, :exit_sensor].each do |sensor_name|
+     result = @box_sensors[sensor_name].distance <= BOX_DISTANCE ? 1 : 0
+     @box_sensor_history[sensor_name].push(result)
+     @box_sensor_history[sensor_name].shift if  @box_sensor_history[sensor_name].length > SENSOR_HISTORY_LENGTH
+     sleep(REST_TIME)
     end
+  end
+
+  def check_beam_sensors
+    return if @beam_broken
+    points = 0
+    @beam_sensors.each do |sensor|
+      distance = sensor.distance
+      points += 1 if distance < 40
+      sleep(REST_TIME)
+    end 
     @beam_broken = points > 4 ? 1 : 0
   end
 
@@ -165,13 +99,24 @@ class Station
   def initialize_sensors
     puts "initializing sensors..."
     @all_sensors = []
-    @entry_sensor_avg = 0
-    @inside_sensor_avg = 0
-    @exit_sensor_avg = 0
-    initialize_entry_sensor
-    initialize_inside_sensor
-    initialize_exit_sensor
     initialize_beam_sensors
+    initialize_box_sensors
+  end
+
+  def initialize_box_sensors
+    @box_sensors = {}
+    @box_sensor_history = {}
+    [:entry_sensor, :inside_sensor, :exit_sensor].each do |sensor_name|
+      @box_sensor_history[sensor_name] = []
+      initialize_box_sensor(sensor_name)
+    end
+  end
+
+  def initialize_box_sensor(sensor_name)
+    pins = @pins[sensor_name]
+    sensor = Sensor.new(pins[:trigger], pins[:echo], @wiring_io, sensor_name.to_s)
+    @all_sensors << sensor
+    @box_sensors[sensor_name] = sensor
   end
 
   def initialize_beam_sensors
@@ -181,24 +126,6 @@ class Station
       @beam_sensors << sensor
       @all_sensors << sensor
     end
-  end
-
-  def initialize_entry_sensor
-    entry_sensor = @pins[:entry_sensor]
-    @entry_sensor = Sensor.new(entry_sensor[:trigger], entry_sensor[:echo], @wiring_io, 'entry_sensor')
-    @all_sensors << @entry_sensor
-  end
-
-  def initialize_inside_sensor
-    inside_sensor = @pins[:inside_sensor]
-    @inside_sensor = Sensor.new(inside_sensor[:trigger], inside_sensor[:echo], @wiring_io, 'inside_sensor')
-    @all_sensors << @inside_sensor
-  end
-
-  def initialize_exit_sensor
-    exit_sensor = @pins[:exit_sensor]
-    @exit_sensor = Sensor.new(exit_sensor[:trigger], exit_sensor[:echo], @wiring_io, 'exit_sensor')
-    @all_sensors << @exit_sensor
   end
 
   def reset_sensors

@@ -6,8 +6,8 @@ require 'wiringpi'
 # Bring in our models
 Dir.glob(File.join(File.dirname(__FILE__), '/models/*.rb')).each {|f| require f }
 
-# Declare our pinout
-require "#{File.dirname(__FILE__)}/pinout.rb"
+# Bring in our config files
+Dir.glob(File.join(File.dirname(__FILE__), '/config/*.rb')).each {|f| require f }
 
 # Initialize our Station
 station = Station.new(PINS)
