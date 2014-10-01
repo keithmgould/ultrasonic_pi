@@ -10,11 +10,10 @@ class Station
 
   def initialize(pins)
     @pins = pins
-    @beam_broken = 0
-    @state = 0
     initialize_gpio
     initialize_sensors
     reset_sensors
+    reset_state
     puts "all set!"
   end
 
@@ -40,7 +39,14 @@ class Station
       # TODO: toss up the correct error light
     end
     @state = new_state
-  end 
+  end
+
+  def perform_state_actions
+    case @state
+    when 0
+      reset_state
+    end
+  end
 
   def valid_transition?(new_state)
     VALID_TRANSITIONS[@state][:valid].include?(new_state)
@@ -125,5 +131,14 @@ class Station
       sensor.reset 
     end
     sleep(2)
+  end
+
+  def reset_state
+    puts "resetting state..."
+    @state = 0
+    @beam_broken = 0
+    [:entry_sensor, :inside_sensor, :exit_sensor].each do |sensor_name|
+      @box_sensor_history[sensor_name] = []
+    end
   end
 end
