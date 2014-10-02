@@ -31,14 +31,14 @@ class Station
   def transition
     new_state = fetch_sensor_state
     return if new_state == @state
-    puts "Transitioning from #{@state} to #{new_state}"
+    puts "Trying to transition from #{@state} to #{new_state}"
     if valid_transition?(new_state)
-      # do nothing :) 
+      @state = new_state
     else
+      @beam_broken = 0
       puts "Invalid transition!"
       # TODO: toss up the correct error light
     end
-    @state = new_state
   end
 
   def perform_state_actions

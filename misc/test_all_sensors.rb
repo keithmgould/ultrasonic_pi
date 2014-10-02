@@ -1,7 +1,7 @@
 require 'wiringpi'
 
 # bring in our pinouts
-require "#{File.dirname(__FILE__)}/../pinout.rb"
+require "#{File.dirname(__FILE__)}/../config/pinout.rb"
 
 # bing our sensor class
 require "#{File.dirname(__FILE__)}/../models/sensor.rb"
