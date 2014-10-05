@@ -1,9 +1,10 @@
 class Station
 
-  BOX_DISTANCE = 10 # Max distance in cm when considering if a box is present
-  BEAM_DISTANCE = 40 # Max distance in cm when considering if the beam is broken
+  # Max distance in cm when considering if a box is present
+  BOX_DISTANCE = 10
 
-  REST_TIME = 0.025 # seconds inbetween each sensor
+  # seconds inbetween each box sensor
+  REST_TIME = 0.025
 
   # how far back to go when looking at rolling avg
   SENSOR_HISTORY_LENGTH = 3
@@ -28,12 +29,17 @@ class Station
 
   private
 
+  #-----------------------------------------------------------------------
+  # Methods Below Concern State Transition
+  #-----------------------------------------------------------------------
+
   def transition
     new_state = fetch_sensor_state
     return if new_state == @state
-    puts "Trying to transition from #{@state} to #{new_state}"
+    puts "Ttransitioned from #{@state} to #{new_state}"
+    @state = new_state
     if valid_transition?(new_state)
-      @state = new_state
+      # Do nothing
     else
       @beam_broken = 0
       puts "Invalid transition!"
@@ -41,16 +47,14 @@ class Station
     end
   end
 
-  def perform_state_actions
-    case @state
-    when 0
-      reset_state
-    end
-  end
-
+  # Valida Transitions found in config/transitions
   def valid_transition?(new_state)
     VALID_TRANSITIONS[@state][:valid].include?(new_state)
   end
+
+  #-----------------------------------------------------------------------
+  # Methods Below Concern Sensor State
+  #-----------------------------------------------------------------------
 
   def fetch_sensor_state
     "#{entry_on}#{inside_on}#{exit_on}#{@beam_broken}".to_i(2)
@@ -79,24 +83,20 @@ class Station
 
   def check_beam_sensors
     return if @beam_broken == 1
-    @beam_sensors.each do |sensor|
-      distance = sensor.distance
-      @beam_broken = 1 if distance < 40
-      sleep(REST_TIME)
-    end 
+    @beam_broken = Beam.broken? ? 1 : 0
   end
 
-  #-----------------------------------------------------
+  #-----------------------------------------------------------------------
   # Methods Below Concern Initialization
+  #-----------------------------------------------------------------------
   
   def initialize_gpio
-    @wiring_io = WiringPi::GPIO.new(WPI_MODE_GPIO)
+    # TODO: does pi piper need anything here?
+    # @wiring_io = WiringPi::GPIO.new(WPI_MODE_GPIO)
   end
 
   def initialize_sensors
     puts "initializing sensors..."
-    @all_sensors = []
-    initialize_beam_sensors
     initialize_box_sensors
   end
 
@@ -111,24 +111,14 @@ class Station
 
   def initialize_box_sensor(sensor_name)
     pins = @pins[sensor_name]
-    sensor = Sensor.new(pins[:trigger], pins[:echo], @wiring_io, sensor_name.to_s)
-    @all_sensors << sensor
+    sensor = BoxSensor.new(pins[:trigger], pins[:echo], sensor_name.to_s)
     @box_sensors[sensor_name] = sensor
-  end
-
-  def initialize_beam_sensors
-    @beam_sensors = []
-    @pins[:beam_sensors].each_with_index do |pins, index|
-      sensor = Sensor.new(pins[:trigger], pins[:echo], @wiring_io, "beam_#{index + 1}")
-      @beam_sensors << sensor
-      @all_sensors << sensor
-    end
   end
 
   def reset_sensors
     puts "resetting sensors..."
-    @all_sensors.each do |sensor|
-      sensor.reset 
+    [:entry_sensor, :inside_sensor, :exit_sensor].each do |sensor_name|
+      @box_sensors[sensor_name].reset
     end
     sleep(2)
   end

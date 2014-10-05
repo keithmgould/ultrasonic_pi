@@ -1,6 +1,6 @@
 
-# Bring in our libraries
-require 'wiringpi'
+# Bring in our GPIO/SPI library
+require 'pi_piper'
 
 
 # Bring in our models
