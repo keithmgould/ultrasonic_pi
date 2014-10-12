@@ -4,7 +4,7 @@ require 'pi_piper'
 require "#{File.dirname(__FILE__)}/../config/pinout.rb"
 
 # bing our sensor class
-require "#{File.dirname(__FILE__)}/../models/sensor.rb"
+require "#{File.dirname(__FILE__)}/../models/box_sensor.rb"
 
 @sensors = []
 
