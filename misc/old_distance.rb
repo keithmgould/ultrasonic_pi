@@ -1,4 +1,4 @@
-require 'pi_piper'
+require 'wiringpi'
 
 unless ARGV.size == 2
   puts "Please enter trigger and echo pins."
@@ -7,35 +7,34 @@ unless ARGV.size == 2
 end
 
 
-trig_pin = ARGV[0].to_i
-echo_pin = ARGV[1].to_i
+trigger = ARGV[0].to_i
+echo = ARGV[1].to_i
 
 pulse_start = pulse_end = 0
 
-# io = WiringPi::GPIO.new(WPI_MODE_GPIO)
+io = WiringPi::GPIO.new(WPI_MODE_GPIO)
 
-trig_pin = PiPiper::Pin.new(:pin => trig_pin, :direction => :out)
-echo_pin = PiPiper::Pin.new(:pin => echo_pin, :direction => :in)
-
+io.mode(trigger,OUTPUT)
+io.mode(echo,INPUT)
 
 
 puts "Distance Measurement In Progress"
 
 # give sensor a chance to chill out
-trig_pin.off
+io.write(trigger,0)
 sleep(2)
 
 # arm sensor by turning trigger on for 10 micro seconds
-trig_pin.on
+io.write(trigger,1)
 sleep(0.00001)
-trig_pin.off
+io.write(trigger,0)
 
 
-while echo_pin.on == 0 do
+while io.read(echo) == 0 do
  pulse_start = Time.now
 end
 
-while echo_pin.off == 1 do
+while io.read(echo) == 1 do
  pulse_end = Time.now
 end
 
