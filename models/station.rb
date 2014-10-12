@@ -11,7 +11,6 @@ class Station
 
   def initialize(pins)
     @pins = pins
-    initialize_reset_switch
     initialize_gpio
     initialize_sensors
     reset_sensors
@@ -22,6 +21,7 @@ class Station
   def begin
     puts "beginning!"
     loop do
+      check_reset_button
       check_beam_sensors
       check_box_sensors
       transition
@@ -73,6 +73,13 @@ class Station
     @box_sensor_history[:exit_sensor].mean >= 0.5 ? 1 : 0
   end
 
+  def check_reset_button
+    @reset_button.read
+    if @reset_button.on? 
+      reset_state
+    end
+  end
+
   def check_box_sensors
     [:entry_sensor, :inside_sensor, :exit_sensor].each do |sensor_name|
      result = @box_sensors[sensor_name].distance <= BOX_DISTANCE ? 1 : 0
@@ -90,17 +97,14 @@ class Station
   #-----------------------------------------------------------------------
   # Methods Below Concern Initialization
   #-----------------------------------------------------------------------
- 
-  def initialize_reset_switch
-    after :pin => @pins[:reset], :goes => :high do
-      puts "Button pressed!"
-      reset_state
-    end
-  end 
 
   def initialize_gpio
     # TODO: does pi piper need anything here?
     # @wiring_io = WiringPi::GPIO.new(WPI_MODE_GPIO)
+  end
+
+  def initialize_reset_button
+    @reset_button = PiPiper::Pin.new(:pin => @pin[:reset], :direction => :in)
   end
 
   def initialize_sensors
