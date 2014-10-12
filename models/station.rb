@@ -12,7 +12,6 @@ class Station
   def initialize(pins)
     @pins = pins
     initialize_leds
-    initialize_gpio
     initialize_sensors
     initialize_reset_button
     reset_sensors
@@ -94,7 +93,6 @@ class Station
   def check_beam_sensors
     return if @beam_broken == 1
     @beam_broken = Beam.broken? ? 1 : 0
-    puts "Beam Broken!" if @beam_broken == 1
   end
 
   #-----------------------------------------------------------------------
@@ -121,21 +119,13 @@ class Station
     turn_on_leds
   end
 
-  def initialize_gpio
-    # TODO: does pi piper need anything here?
-    # @wiring_io = WiringPi::GPIO.new(WPI_MODE_GPIO)
-  end
-
   def initialize_reset_button
+    puts "initializing reset button..."
     @reset_button = PiPiper::Pin.new(:pin => @pins[:reset], :direction => :in)
   end
 
   def initialize_sensors
     puts "initializing sensors..."
-    initialize_box_sensors
-  end
-
-  def initialize_box_sensors
     @box_sensors = {}
     @box_sensor_history = {}
     [:entry_sensor, :inside_sensor, :exit_sensor].each do |sensor_name|
