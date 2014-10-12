@@ -30,13 +30,14 @@ trig_pin.on
 sleep(0.00001)
 trig_pin.off
 
+echo_pin.read
+while echo_pin.off? { echo_pin.read }
+pulse_start = Time.now
 
-while echo_pin.on == 0 do
- pulse_start = Time.now
-end
-
-while echo_pin.off == 1 do
+echo_pin.read
+while echo_pin.on? do
  pulse_end = Time.now
+ echo_pin.read
 end
 
 puts "pulse_end: #{pulse_end}"

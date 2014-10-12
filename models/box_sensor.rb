@@ -23,15 +23,17 @@ class BoxSensor
     @trig_pin.off
 
     # wait for the echo pin to turn on
-    while @echo_pin.off do
-    end
+    @echo_pin.read
+    while @echo_pin.off? { @echo_pin.read }
     pulse_start = Time.now
 
     # wait for the echo pin to turn off
-    while @echo_pin.on do
+    @echo_pin.read
+    while @echo_pin.on? do
       pulse_end = Time.now
       distance = convert_to_cm(pulse_end - pulse_start)
       break if distance >= MAX_DISTANCE
+      @echo_pin.read
     end
 
     # return how long it took for the echo pin
