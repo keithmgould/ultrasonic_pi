@@ -10,9 +10,8 @@ class Beam
 
       invert = 1023 - value
       mvolts = invert * (3300.0 / 1023.0)
-      if mvolts > 1500
+      if mvolts < 300
         broken = true
-        puts "#{i} BEAM BROKEN!"
       end
       sleep(0.005)
     end

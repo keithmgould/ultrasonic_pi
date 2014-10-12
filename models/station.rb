@@ -11,6 +11,7 @@ class Station
 
   def initialize(pins)
     @pins = pins
+    initialize_reset_switch
     initialize_gpio
     initialize_sensors
     reset_sensors
@@ -89,7 +90,14 @@ class Station
   #-----------------------------------------------------------------------
   # Methods Below Concern Initialization
   #-----------------------------------------------------------------------
-  
+ 
+  def initialize_reset_switch
+    after :pin => @pins[:reset], :goes => :high do
+      puts "Button pressed!"
+      reset_state
+    end
+  end 
+
   def initialize_gpio
     # TODO: does pi piper need anything here?
     # @wiring_io = WiringPi::GPIO.new(WPI_MODE_GPIO)
