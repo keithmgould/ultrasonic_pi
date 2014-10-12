@@ -11,12 +11,15 @@ class Station
 
   def initialize(pins)
     @pins = pins
+    initialize_leds
+    turn_on_leds
     initialize_gpio
     initialize_sensors
     initialize_reset_button
     reset_sensors
     reset_state
     puts "all set!"
+    turn_off_leds
   end
 
   def begin
@@ -39,12 +42,12 @@ class Station
     new_state = fetch_sensor_state
     return if new_state == @state
     puts "Transitioned from #{@state} to #{new_state}"
-    @state = new_state
     if valid_transition?(new_state)
+      @state = new_state
       # Do nothing
     else
-      @beam_broken = 0
       puts "Invalid transition!"
+      @beam_broken = 0
       # TODO: toss up the correct error light
     end
   end
@@ -93,11 +96,39 @@ class Station
   def check_beam_sensors
     return if @beam_broken == 1
     @beam_broken = Beam.broken? ? 1 : 0
+    puts "Beam Broken!" if @beam_broken == 1
+  end
+
+  #-----------------------------------------------------------------------
+  # Methods Below Concern Signalling with LEDs
+  #-----------------------------------------------------------------------
+
+  def activate_exit_error
+    @exit_led.on
+  end
+
+  def activate_entry_error
+    @entry_led.on
+  end
+
+  def turn_on_leds
+    @entry_led.on
+    @exit_led.on 
+  end
+
+  def turn_off_leds
+    @entry_led.off
+    @exit_led.off
   end
 
   #-----------------------------------------------------------------------
   # Methods Below Concern Initialization
   #-----------------------------------------------------------------------
+
+  def initialize_leds
+    @entry_led = PiPiper::Pin.new(:pin => @pins[:entry_error], :direction => :out) 
+    @exit_led = PiPiper::Pin.new(:pin => @pins[:exit_error], :direction => :out) 
+  end
 
   def initialize_gpio
     # TODO: does pi piper need anything here?
@@ -138,6 +169,7 @@ class Station
 
   def reset_state
     puts "resetting state..."
+    turn_off_leds
     @state = 0
     @beam_broken = 0
     [:entry_sensor, :inside_sensor, :exit_sensor].each do |sensor_name|
