@@ -12,14 +12,12 @@ class Station
   def initialize(pins)
     @pins = pins
     initialize_leds
-    turn_on_leds
     initialize_gpio
     initialize_sensors
     initialize_reset_button
     reset_sensors
     reset_state
     puts "all set!"
-    turn_off_leds
   end
 
   def begin
@@ -103,14 +101,6 @@ class Station
   # Methods Below Concern Signalling with LEDs
   #-----------------------------------------------------------------------
 
-  def activate_exit_error
-    @exit_led.on
-  end
-
-  def activate_entry_error
-    @entry_led.on
-  end
-
   def turn_on_leds
     @entry_led.on
     @exit_led.on 
@@ -128,6 +118,7 @@ class Station
   def initialize_leds
     @entry_led = PiPiper::Pin.new(:pin => @pins[:entry_error], :direction => :out) 
     @exit_led = PiPiper::Pin.new(:pin => @pins[:exit_error], :direction => :out) 
+    turn_on_leds
   end
 
   def initialize_gpio

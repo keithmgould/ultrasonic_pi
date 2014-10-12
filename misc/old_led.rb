@@ -1,4 +1,4 @@
-require 'pi_piper'
+require 'wiringpi'
 
 # Wire the 3.3v to the anode (longer pin) of the LED
 # Wire the GPIO to the cathode (shorter pin) of the LED
@@ -11,11 +11,13 @@ end
 
 pin = ARGV[0].to_i
 
-led = PiPiper::Pin.new(:pin => pin, :direction => :out)
+io = WiringPi::GPIO.new(WPI_MODE_GPIO)
+io.mode(pin, OUTPUT)
 
 loop do
  sleep(0.5)
- led.on
+ io.write(pin, 0)
  sleep(0.5)
- led.off
+ io.write(pin, 1)
 end
+
