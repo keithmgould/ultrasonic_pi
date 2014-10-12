@@ -24,7 +24,9 @@ class BoxSensor
 
     # wait for the echo pin to turn on
     @echo_pin.read
-    while @echo_pin.off? { @echo_pin.read }
+    while @echo_pin.off? do
+      @echo_pin.read
+    end
     pulse_start = Time.now
 
     # wait for the echo pin to turn off

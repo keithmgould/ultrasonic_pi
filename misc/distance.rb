@@ -31,7 +31,9 @@ sleep(0.00001)
 trig_pin.off
 
 echo_pin.read
-while echo_pin.off? { echo_pin.read }
+while echo_pin.off? do
+ echo_pin.read
+end
 pulse_start = Time.now
 
 echo_pin.read
