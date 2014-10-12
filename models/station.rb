@@ -13,6 +13,7 @@ class Station
     @pins = pins
     initialize_gpio
     initialize_sensors
+    initialize_reset_button
     reset_sensors
     reset_state
     puts "all set!"
@@ -37,7 +38,7 @@ class Station
   def transition
     new_state = fetch_sensor_state
     return if new_state == @state
-    puts "Ttransitioned from #{@state} to #{new_state}"
+    puts "Transitioned from #{@state} to #{new_state}"
     @state = new_state
     if valid_transition?(new_state)
       # Do nothing
@@ -75,7 +76,7 @@ class Station
 
   def check_reset_button
     @reset_button.read
-    if @reset_button.on? 
+    if @reset_button.off? 
       reset_state
     end
   end
@@ -104,7 +105,7 @@ class Station
   end
 
   def initialize_reset_button
-    @reset_button = PiPiper::Pin.new(:pin => @pin[:reset], :direction => :in)
+    @reset_button = PiPiper::Pin.new(:pin => @pins[:reset], :direction => :in)
   end
 
   def initialize_sensors
