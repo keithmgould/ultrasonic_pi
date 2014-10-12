@@ -1,7 +1,10 @@
 
 # Bring in our GPIO/SPI library
 require 'pi_piper'
+include PiPiper
 
+# Bring in our initializers
+Dir.glob(File.join(File.dirname(__FILE__), '/initializers/*.rb')).each {|f| require f }
 
 # Bring in our models
 Dir.glob(File.join(File.dirname(__FILE__), '/models/*.rb')).each {|f| require f }
